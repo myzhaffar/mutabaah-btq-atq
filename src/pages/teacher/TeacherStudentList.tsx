@@ -16,10 +16,12 @@ const MOCK_STUDENTS: Student[] = [
     hafalanProgress: {
       total: 5,
       lastSurah: "Al-Fatiha",
+      percentage: 60,
     },
     tilawahProgress: {
       jilid: "2",
       page: 15,
+      percentage: 75,
     },
   },
   {
@@ -31,10 +33,12 @@ const MOCK_STUDENTS: Student[] = [
     hafalanProgress: {
       total: 8,
       lastSurah: "Al-Falaq",
+      percentage: 80,
     },
     tilawahProgress: {
       jilid: "3",
       page: 7,
+      percentage: 40,
     },
   },
   {
@@ -46,10 +50,12 @@ const MOCK_STUDENTS: Student[] = [
     hafalanProgress: {
       total: 3,
       lastSurah: "Al-Kafirun",
+      percentage: 35,
     },
     tilawahProgress: {
       jilid: "1",
       page: 20,
+      percentage: 90,
     },
   },
 ];

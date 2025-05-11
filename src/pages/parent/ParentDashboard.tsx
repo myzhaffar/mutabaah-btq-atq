@@ -14,10 +14,29 @@ const MOCK_CHILDREN: Student[] = [
     hafalanProgress: {
       total: 5,
       lastSurah: "Al-Fatiha",
+      percentage: 75, // 75% complete of current surah
     },
     tilawahProgress: {
       jilid: "2",
       page: 15,
+      percentage: 60, // 60% complete of current jilid
+    },
+  },
+  {
+    id: "2",
+    name: "Aisyah Nur",
+    photo: "",
+    group: "Class 2B",
+    teacher: "Ustadzah Fatimah",
+    hafalanProgress: {
+      total: 3,
+      lastSurah: "An-Nas",
+      percentage: 40, // 40% complete of current surah
+    },
+    tilawahProgress: {
+      jilid: "1",
+      page: 8,
+      percentage: 25, // 25% complete of current jilid
     },
   },
 ];

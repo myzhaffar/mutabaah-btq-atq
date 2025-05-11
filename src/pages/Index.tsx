@@ -87,14 +87,24 @@ const Index = () => {
         onValueChange={setActiveTab}
         className="w-full"
       >
-        <TabsList className="grid w-full grid-cols-2 mb-6">
-          <TabsTrigger value="login">Login</TabsTrigger>
-          <TabsTrigger value="about">About</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2 mb-6 rounded-full bg-gray-100 p-1">
+          <TabsTrigger 
+            value="login" 
+            className="rounded-full data-[state=active]:bg-white data-[state=active]:shadow-sm"
+          >
+            Login
+          </TabsTrigger>
+          <TabsTrigger 
+            value="about" 
+            className="rounded-full data-[state=active]:bg-white data-[state=active]:shadow-sm"
+          >
+            About
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="login" className="space-y-4">
           <div className="space-y-2 text-center mb-6">
-            <h2 className="text-2xl font-semibold text-kid-green">Welcome Back</h2>
+            <h2 className="text-2xl font-semibold bg-gradient-to-r from-kid-green to-kid-teal bg-clip-text text-transparent">Welcome Back</h2>
             <p className="text-gray-500 text-sm">
               Sign in to access the Quran progress monitoring system
             </p>
@@ -169,7 +179,7 @@ const Index = () => {
 
               <Button 
                 type="submit" 
-                className="w-full btn-kid-primary mt-6"
+                className="w-full rounded-full bg-gradient-to-r from-kid-green to-kid-teal text-white hover:opacity-90 mt-6"
               >
                 Sign In
               </Button>
@@ -178,35 +188,42 @@ const Index = () => {
         </TabsContent>
 
         <TabsContent value="about">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-kid-green">Quran Progress Monitor</CardTitle>
+          <Card className="border-0 shadow-md rounded-2xl overflow-hidden">
+            <CardHeader className="bg-gradient-to-r from-kid-green/10 to-kid-teal/10">
+              <CardTitle className="bg-gradient-to-r from-kid-green to-kid-teal bg-clip-text text-transparent">Quran Progress Monitor</CardTitle>
               <CardDescription>
                 A simple system to track students' Quran memorization and recitation
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6 pt-6">
               <div>
-                <h3 className="font-medium">For Teachers</h3>
-                <ul className="list-disc pl-5 text-sm space-y-1 mt-2">
+                <h3 className="font-medium flex items-center gap-2">
+                  <span className="inline-block w-8 h-8 rounded-full bg-kid-green/20 flex items-center justify-center text-kid-green">👨‍🏫</span>
+                  For Teachers
+                </h3>
+                <ul className="list-disc pl-5 text-sm space-y-2 mt-3 text-gray-600">
                   <li>Add and manage student profiles</li>
                   <li>Record daily hafalan and tilawah progress</li>
                   <li>View comprehensive reports for all students</li>
                 </ul>
               </div>
               <div>
-                <h3 className="font-medium">For Parents</h3>
-                <ul className="list-disc pl-5 text-sm space-y-1 mt-2">
+                <h3 className="font-medium flex items-center gap-2">
+                  <span className="inline-block w-8 h-8 rounded-full bg-kid-blue/20 flex items-center justify-center text-kid-blue">👪</span>
+                  For Parents
+                </h3>
+                <ul className="list-disc pl-5 text-sm space-y-2 mt-3 text-gray-600">
                   <li>View your child's Quran learning progress</li>
                   <li>Track hafalan and tilawah achievements</li>
                   <li>Stay informed about daily activities</li>
                 </ul>
               </div>
             </CardContent>
-            <CardFooter className="flex justify-center">
+            <CardFooter className="flex justify-center pb-6">
               <Button 
                 variant="outline" 
                 onClick={() => setActiveTab("login")}
+                className="rounded-full"
               >
                 Back to Login
               </Button>

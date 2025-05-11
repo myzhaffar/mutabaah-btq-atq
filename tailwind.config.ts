@@ -63,14 +63,14 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// Custom colors for our kid-friendly design
-				"kid-green": "#78C091",
-				"kid-blue": "#89CFF0",
-				"kid-orange": "#FFB347",
-				"kid-yellow": "#FFF3B0",
-				"kid-pink": "#FFCCD5",
-				"kid-purple": "#E5DEFF",
-				"kid-teal": "#8EEDC7",
+				// Custom colors for our kid-friendly design - updated to match the Dribbble design
+				"kid-green": "#52BD94", // Adjusted to match the design
+				"kid-blue": "#4F96FF", // Brighter blue from the design
+				"kid-orange": "#FF9F76", // Softer orange
+				"kid-yellow": "#FFDC60", // Brighter yellow
+				"kid-pink": "#FF8FAB", // Brighter pink
+				"kid-purple": "#A68BFF", // Added purple from the design
+				"kid-teal": "#54D2C7", // Adjusted teal
 			},
 			borderRadius: {
 				lg: 'var(--radius)',

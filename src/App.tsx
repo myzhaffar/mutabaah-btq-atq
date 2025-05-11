@@ -13,6 +13,7 @@ import TeacherStudentNew from "./pages/teacher/TeacherStudentNew";
 import TeacherStudentDetail from "./pages/teacher/TeacherStudentDetail";
 import TeacherStudentEdit from "./pages/teacher/TeacherStudentEdit";
 import TeacherAddProgress from "./pages/teacher/TeacherAddProgress";
+import TeacherProgress from "./pages/teacher/TeacherProgress";
 
 // Parent routes
 import ParentDashboard from "./pages/parent/ParentDashboard";
@@ -35,6 +36,7 @@ const App = () => (
           <Route path="/teacher/student/:id" element={<TeacherStudentDetail />} />
           <Route path="/teacher/student/:id/edit" element={<TeacherStudentEdit />} />
           <Route path="/teacher/student/:id/add-progress" element={<TeacherAddProgress />} />
+          <Route path="/teacher/progress" element={<TeacherProgress />} />
           
           {/* Parent Routes */}
           <Route path="/parent/dashboard" element={<ParentDashboard />} />

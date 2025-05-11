@@ -155,7 +155,7 @@ const ParentDashboard = () => {
                   <SelectValue placeholder="Select class group" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Groups</SelectItem>
+                  <SelectItem value="all-groups">All Groups</SelectItem>
                   {uniqueGroups.map((group) => (
                     <SelectItem key={group} value={group}>
                       {group}

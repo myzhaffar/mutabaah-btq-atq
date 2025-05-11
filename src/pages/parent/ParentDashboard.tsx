@@ -5,7 +5,15 @@ import StudentCard, { Student } from "@/components/students/StudentCard";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Filter } from "lucide-react";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuCheckboxItem
+} from "@/components/ui/dropdown-menu";
+import { Checkbox } from "@/components/ui/checkbox";
 
 // Enhanced mock data with more details
 const MOCK_CHILDREN: Student[] = [
@@ -70,30 +78,48 @@ const uniqueGrades = [...new Set(MOCK_CHILDREN.map(child => child.grade))];
 const uniqueGroups = [...new Set(MOCK_CHILDREN.map(child => child.group))];
 
 const ParentDashboard = () => {
-  const [selectedGrade, setSelectedGrade] = useState<string>("");
-  const [selectedGroup, setSelectedGroup] = useState<string>("");
+  const [selectedGrades, setSelectedGrades] = useState<string[]>([]);
+  const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState<boolean>(false);
   const [filteredChildren, setFilteredChildren] = useState<Student[]>(MOCK_CHILDREN);
+
+  // Toggle grade selection
+  const toggleGrade = (grade: string) => {
+    setSelectedGrades(current => 
+      current.includes(grade)
+        ? current.filter(g => g !== grade)
+        : [...current, grade]
+    );
+  };
+
+  // Toggle group selection
+  const toggleGroup = (group: string) => {
+    setSelectedGroups(current => 
+      current.includes(group)
+        ? current.filter(g => g !== group)
+        : [...current, group]
+    );
+  };
 
   // Apply filters when selections change
   useEffect(() => {
     let result = MOCK_CHILDREN;
     
-    if (selectedGrade) {
-      result = result.filter(child => child.grade === selectedGrade);
+    if (selectedGrades.length > 0) {
+      result = result.filter(child => selectedGrades.includes(child.grade));
     }
     
-    if (selectedGroup) {
-      result = result.filter(child => child.group === selectedGroup);
+    if (selectedGroups.length > 0) {
+      result = result.filter(child => selectedGroups.includes(child.group));
     }
     
     setFilteredChildren(result);
-  }, [selectedGrade, selectedGroup]);
+  }, [selectedGrades, selectedGroups]);
 
   // Reset all filters
   const resetFilters = () => {
-    setSelectedGrade("");
-    setSelectedGroup("");
+    setSelectedGrades([]);
+    setSelectedGroups([]);
   };
 
   return (
@@ -130,39 +156,62 @@ const ParentDashboard = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Grade</label>
-              <ToggleGroup 
-                type="single" 
-                value={selectedGrade} 
-                onValueChange={(value) => setSelectedGrade(value)}
-                className="justify-start"
-              >
-                {uniqueGrades.map((grade) => (
-                  <ToggleGroupItem 
-                    key={grade} 
-                    value={grade}
-                    className="rounded-full bg-gray-100 data-[state=on]:bg-kid-green data-[state=on]:text-white"
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-between"
                   >
-                    {grade}
-                  </ToggleGroupItem>
-                ))}
-              </ToggleGroup>
+                    {selectedGrades.length > 0 
+                      ? `${selectedGrades.length} selected` 
+                      : "Choose grade"}
+                    <span className="ml-2 opacity-70">▼</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56 bg-white">
+                  <DropdownMenuLabel>Select Grades</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {uniqueGrades.map((grade) => (
+                    <DropdownMenuCheckboxItem
+                      key={grade}
+                      checked={selectedGrades.includes(grade)}
+                      onCheckedChange={() => toggleGrade(grade)}
+                    >
+                      Grade {grade}
+                    </DropdownMenuCheckboxItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Group</label>
-              <Select value={selectedGroup} onValueChange={setSelectedGroup}>
-                <SelectTrigger className="rounded-full">
-                  <SelectValue placeholder="Select class group" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all-groups">All Groups</SelectItem>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-between"
+                  >
+                    {selectedGroups.length > 0 
+                      ? `${selectedGroups.length} selected` 
+                      : "Choose group"}
+                    <span className="ml-2 opacity-70">▼</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56 bg-white">
+                  <DropdownMenuLabel>Select Groups</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
                   {uniqueGroups.map((group) => (
-                    <SelectItem key={group} value={group}>
+                    <DropdownMenuCheckboxItem
+                      key={group}
+                      checked={selectedGroups.includes(group)}
+                      onCheckedChange={() => toggleGroup(group)}
+                    >
                       {group}
-                    </SelectItem>
+                    </DropdownMenuCheckboxItem>
                   ))}
-                </SelectContent>
-              </Select>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </div>

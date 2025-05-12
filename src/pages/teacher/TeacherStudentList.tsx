@@ -14,8 +14,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuCheckboxItem
 } from "@/components/ui/dropdown-menu";
+import { useStudentFilters } from "@/hooks/useStudentFilters";
 
-const MOCK_STUDENTS: Student[] = [
+export const MOCK_STUDENTS: Student[] = [
   {
     id: "1",
     name: "Ahmad Farhan",
@@ -73,73 +74,52 @@ const MOCK_STUDENTS: Student[] = [
 ];
 
 // Extract unique grades and groups for filter options
-const uniqueGrades = [...new Set(MOCK_STUDENTS.map(student => student.grade))];
-const uniqueGroups = [...new Set(MOCK_STUDENTS.map(student => student.group))];
+export const uniqueGrades = [...new Set(MOCK_STUDENTS.map(student => student.grade))];
+export const uniqueGroups = [...new Set(MOCK_STUDENTS.map(student => student.group))];
 
 const TeacherStudentList = () => {
   const navigate = useNavigate();
-  const [searchTerm, setSearchTerm] = useState("");
   const [students] = useState<Student[]>(MOCK_STUDENTS);
   const [filteredStudents, setFilteredStudents] = useState<Student[]>(MOCK_STUDENTS);
   
-  const [selectedGrades, setSelectedGrades] = useState<string[]>([]);
-  const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
-  const [showFilters, setShowFilters] = useState<boolean>(false);
-
-  // Toggle grade selection
-  const toggleGrade = (grade: string) => {
-    setSelectedGrades(current => 
-      current.includes(grade)
-        ? current.filter(g => g !== grade)
-        : [...current, grade]
-    );
-  };
-
-  // Toggle group selection
-  const toggleGroup = (group: string) => {
-    setSelectedGroups(current => 
-      current.includes(group)
-        ? current.filter(g => g !== group)
-        : [...current, group]
-    );
-  };
+  const {
+    filters,
+    setSearchTerm,
+    toggleGrade,
+    toggleGroup,
+    resetFilters,
+    setShowFilters
+  } = useStudentFilters();
 
   useEffect(() => {
     // Filter students based on search term, selected grades and groups
     let filtered = students;
     
-    if (searchTerm) {
+    if (filters.searchTerm) {
       filtered = filtered.filter(
         (student) =>
-          student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          student.group.toLowerCase().includes(searchTerm.toLowerCase())
+          student.name.toLowerCase().includes(filters.searchTerm.toLowerCase()) ||
+          student.group.toLowerCase().includes(filters.searchTerm.toLowerCase())
       );
     }
     
-    if (selectedGrades.length > 0) {
+    if (filters.selectedGrades.length > 0) {
       filtered = filtered.filter(student => 
-        student.grade && selectedGrades.includes(student.grade)
+        student.grade && filters.selectedGrades.includes(student.grade)
       );
     }
     
-    if (selectedGroups.length > 0) {
+    if (filters.selectedGroups.length > 0) {
       filtered = filtered.filter(student => 
-        selectedGroups.includes(student.group)
+        filters.selectedGroups.includes(student.group)
       );
     }
     
     setFilteredStudents(filtered);
-  }, [searchTerm, students, selectedGrades, selectedGroups]);
+  }, [filters.searchTerm, students, filters.selectedGrades, filters.selectedGroups]);
 
   const handleAddStudent = () => {
     navigate("/teacher/student/new");
-  };
-
-  // Reset all filters
-  const resetFilters = () => {
-    setSelectedGrades([]);
-    setSelectedGroups([]);
-    setSearchTerm("");
   };
 
   return (
@@ -155,7 +135,7 @@ const TeacherStudentList = () => {
             type="search"
             placeholder="Search students..."
             className="input-kid max-w-xs"
-            value={searchTerm}
+            value={filters.searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
           <Button onClick={handleAddStudent} className="btn-kid-primary whitespace-nowrap">
@@ -169,13 +149,13 @@ const TeacherStudentList = () => {
           variant="outline" 
           size="sm" 
           className="flex items-center gap-2 rounded-full"
-          onClick={() => setShowFilters(!showFilters)}
+          onClick={() => setShowFilters(!filters.showFilters)}
         >
           <Filter className="h-4 w-4" />
-          {showFilters ? "Hide Filters" : "Show Filters"}
+          {filters.showFilters ? "Hide Filters" : "Show Filters"}
         </Button>
         
-        {showFilters && (
+        {filters.showFilters && (
           <Button 
             variant="ghost" 
             size="sm" 
@@ -187,7 +167,7 @@ const TeacherStudentList = () => {
         )}
       </div>
       
-      {showFilters && (
+      {filters.showFilters && (
         <div className="bg-white p-4 rounded-lg shadow-sm mb-6 animate-fade-in">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
@@ -198,8 +178,8 @@ const TeacherStudentList = () => {
                     variant="outline" 
                     className="w-full justify-between"
                   >
-                    {selectedGrades.length > 0 
-                      ? `${selectedGrades.length} selected` 
+                    {filters.selectedGrades.length > 0 
+                      ? `${filters.selectedGrades.length} selected` 
                       : "Choose grade"}
                     <span className="ml-2 opacity-70">▼</span>
                   </Button>
@@ -210,7 +190,7 @@ const TeacherStudentList = () => {
                   {uniqueGrades.map((grade) => (
                     <DropdownMenuCheckboxItem
                       key={grade}
-                      checked={selectedGrades.includes(grade)}
+                      checked={filters.selectedGrades.includes(grade)}
                       onCheckedChange={() => toggleGrade(grade)}
                     >
                       Grade {grade}
@@ -228,8 +208,8 @@ const TeacherStudentList = () => {
                     variant="outline" 
                     className="w-full justify-between"
                   >
-                    {selectedGroups.length > 0 
-                      ? `${selectedGroups.length} selected` 
+                    {filters.selectedGroups.length > 0 
+                      ? `${filters.selectedGroups.length} selected` 
                       : "Choose group"}
                     <span className="ml-2 opacity-70">▼</span>
                   </Button>
@@ -240,7 +220,7 @@ const TeacherStudentList = () => {
                   {uniqueGroups.map((group) => (
                     <DropdownMenuCheckboxItem
                       key={group}
-                      checked={selectedGroups.includes(group)}
+                      checked={filters.selectedGroups.includes(group)}
                       onCheckedChange={() => toggleGroup(group)}
                     >
                       {group}
@@ -270,7 +250,7 @@ const TeacherStudentList = () => {
           </div>
           <h3 className="text-xl font-bold">No students found</h3>
           <p className="text-gray-500 mt-2 mb-6">
-            {searchTerm || selectedGrades.length > 0 || selectedGroups.length > 0
+            {filters.searchTerm || filters.selectedGrades.length > 0 || filters.selectedGroups.length > 0
               ? "No students match your search criteria."
               : "Start by adding your first student."}
           </p>

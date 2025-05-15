@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,21 +17,26 @@ import {
   DropdownMenuCheckboxItem
 } from "@/components/ui/dropdown-menu";
 import { useStudentFilters } from "@/hooks/useStudentFilters";
-import { MOCK_STUDENTS, uniqueGrades, uniqueGroups } from "./TeacherStudentList";
+import { getStudents } from "@/services/studentService";
+import { StudentWithProgress } from "@/types/database";
 
-// Mock data for progress summary
-const PROGRESS_SUMMARY = MOCK_STUDENTS.map(student => ({
-  id: student.id,
-  name: student.name,
-  grade: student.grade,
-  group: student.group,
-  hafalanProgress: student.hafalanProgress.percentage,
-  tilawahProgress: student.tilawahProgress.percentage,
-}));
+type ProgressSummary = {
+  id: string;
+  name: string;
+  grade: string | undefined;
+  group: string;
+  hafalanProgress: number;
+  tilawahProgress: number;
+};
 
 const TeacherProgress = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = React.useState<string>("hafalan");
+  const [students, setStudents] = useState<StudentWithProgress[]>([]);
+  const [progressSummary, setProgressSummary] = useState<ProgressSummary[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [uniqueGrades, setUniqueGrades] = useState<string[]>([]);
+  const [uniqueGroups, setUniqueGroups] = useState<string[]>([]);
   
   const {
     filters,
@@ -42,15 +47,51 @@ const TeacherProgress = () => {
     setShowFilters
   } = useStudentFilters();
 
+  useEffect(() => {
+    const fetchStudents = async () => {
+      setIsLoading(true);
+      try {
+        const studentsData = await getStudents();
+        setStudents(studentsData);
+        
+        // Create progress summary data
+        const summary = studentsData.map(student => ({
+          id: student.id,
+          name: student.name,
+          grade: student.grade,
+          group: student.group,
+          hafalanProgress: student.hafalanProgress.percentage,
+          tilawahProgress: student.tilawahProgress.percentage,
+        }));
+        
+        setProgressSummary(summary);
+        
+        // Extract unique grades and groups
+        const grades = [...new Set(studentsData.map(student => student.grade).filter(Boolean))];
+        const groups = [...new Set(studentsData.map(student => student.group))];
+        
+        setUniqueGrades(grades);
+        setUniqueGroups(groups);
+        
+      } catch (error) {
+        console.error("Failed to fetch students:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchStudents();
+  }, []);
+
   // Filter the progress data based on the filters
-  const filteredProgress = PROGRESS_SUMMARY.filter(student => {
+  const filteredProgress = progressSummary.filter(student => {
     // Filter by search term
     if (filters.searchTerm && !student.name.toLowerCase().includes(filters.searchTerm.toLowerCase())) {
       return false;
     }
     
     // Filter by grade
-    if (filters.selectedGrades.length > 0 && !filters.selectedGrades.includes(student.grade)) {
+    if (filters.selectedGrades.length > 0 && (!student.grade || !filters.selectedGrades.includes(student.grade))) {
       return false;
     }
     
@@ -170,78 +211,101 @@ const TeacherProgress = () => {
         </div>
       )}
 
-      <Tabs
-        value={activeTab}
-        onValueChange={setActiveTab}
-        className="w-full mb-6"
-      >
-        <TabsList className="w-full max-w-xs">
-          <TabsTrigger value="hafalan" className="flex-1">Hafalan Progress</TabsTrigger>
-          <TabsTrigger value="tilawah" className="flex-1">Tilawah Progress</TabsTrigger>
-        </TabsList>
+      {isLoading ? (
+        <div className="text-center py-12">
+          <div className="w-16 h-16 border-4 border-kid-yellow border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-500">Loading progress data...</p>
+        </div>
+      ) : (
+        <Tabs
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="w-full mb-6"
+        >
+          <TabsList className="w-full max-w-xs">
+            <TabsTrigger value="hafalan" className="flex-1">Hafalan Progress</TabsTrigger>
+            <TabsTrigger value="tilawah" className="flex-1">Tilawah Progress</TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="hafalan" className="mt-6">
-          {filteredProgress.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {filteredProgress.map((student) => (
-                <Card key={student.id} className="overflow-hidden border-none shadow-md rounded-2xl">
-                  <CardHeader className="bg-gradient-to-r from-kid-green/10 to-kid-teal/10 pb-2">
-                    <CardTitle className="text-lg">{student.name}</CardTitle>
-                    <p className="text-xs text-gray-500">{student.group}</p>
-                  </CardHeader>
-                  <CardContent className="pt-4">
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between mb-1">
-                        <p className="text-sm font-medium">Hafalan Progress</p>
-                        <p className="text-sm font-semibold">{student.hafalanProgress}%</p>
+          <TabsContent value="hafalan" className="mt-6">
+            {filteredProgress.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {filteredProgress.map((student) => (
+                  <Card key={student.id} className="overflow-hidden border-none shadow-md rounded-2xl">
+                    <CardHeader className="bg-gradient-to-r from-kid-green/10 to-kid-teal/10 pb-2">
+                      <CardTitle className="text-lg">{student.name}</CardTitle>
+                      <p className="text-xs text-gray-500">{student.group}</p>
+                    </CardHeader>
+                    <CardContent className="pt-4">
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between mb-1">
+                          <p className="text-sm font-medium">Hafalan Progress</p>
+                          <p className="text-sm font-semibold">{student.hafalanProgress}%</p>
+                        </div>
+                        <Progress value={student.hafalanProgress} className="h-3 rounded-full" />
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="w-full mt-2"
+                          onClick={() => navigate(`/teacher/student/${student.id}`)}
+                        >
+                          View Details
+                        </Button>
                       </div>
-                      <Progress value={student.hafalanProgress} className="h-3 rounded-full" />
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12 bg-white rounded-lg shadow-sm">
-              <h3 className="text-xl font-bold">No students found</h3>
-              <p className="text-gray-500 mt-2">
-                No students match your search criteria.
-              </p>
-            </div>
-          )}
-        </TabsContent>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12 bg-white rounded-lg shadow-sm">
+                <h3 className="text-xl font-bold">No students found</h3>
+                <p className="text-gray-500 mt-2">
+                  No students match your search criteria.
+                </p>
+              </div>
+            )}
+          </TabsContent>
 
-        <TabsContent value="tilawah" className="mt-6">
-          {filteredProgress.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {filteredProgress.map((student) => (
-                <Card key={student.id} className="overflow-hidden border-none shadow-md rounded-2xl">
-                  <CardHeader className="bg-gradient-to-r from-kid-purple/10 to-kid-blue/10 pb-2">
-                    <CardTitle className="text-lg">{student.name}</CardTitle>
-                    <p className="text-xs text-gray-500">{student.group}</p>
-                  </CardHeader>
-                  <CardContent className="pt-4">
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between mb-1">
-                        <p className="text-sm font-medium">Tilawah Progress</p>
-                        <p className="text-sm font-semibold">{student.tilawahProgress}%</p>
+          <TabsContent value="tilawah" className="mt-6">
+            {filteredProgress.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {filteredProgress.map((student) => (
+                  <Card key={student.id} className="overflow-hidden border-none shadow-md rounded-2xl">
+                    <CardHeader className="bg-gradient-to-r from-kid-purple/10 to-kid-blue/10 pb-2">
+                      <CardTitle className="text-lg">{student.name}</CardTitle>
+                      <p className="text-xs text-gray-500">{student.group}</p>
+                    </CardHeader>
+                    <CardContent className="pt-4">
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between mb-1">
+                          <p className="text-sm font-medium">Tilawah Progress</p>
+                          <p className="text-sm font-semibold">{student.tilawahProgress}%</p>
+                        </div>
+                        <Progress value={student.tilawahProgress} className="h-3 rounded-full" />
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="w-full mt-2"
+                          onClick={() => navigate(`/teacher/student/${student.id}`)}
+                        >
+                          View Details
+                        </Button>
                       </div>
-                      <Progress value={student.tilawahProgress} className="h-3 rounded-full" />
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12 bg-white rounded-lg shadow-sm">
-              <h3 className="text-xl font-bold">No students found</h3>
-              <p className="text-gray-500 mt-2">
-                No students match your search criteria.
-              </p>
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12 bg-white rounded-lg shadow-sm">
+                <h3 className="text-xl font-bold">No students found</h3>
+                <p className="text-gray-500 mt-2">
+                  No students match your search criteria.
+                </p>
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
+      )}
     </DashboardLayout>
   );
 };

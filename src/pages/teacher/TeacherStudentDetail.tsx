@@ -1,10 +1,10 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import DashboardLayout from "@/components/layout/DashboardLayout";
-import ProgressList, { ProgressEntry } from "@/components/progress/ProgressList";
+import ProgressList from "@/components/progress/ProgressList";
 import { Trash2 } from "lucide-react";
 import { 
   AlertDialog, 
@@ -17,82 +17,53 @@ import {
   AlertDialogTitle
 } from "@/components/ui/alert-dialog";
 import { toast } from "@/components/ui/use-toast";
-
-// Mock data (In real app this would come from Supabase)
-const MOCK_STUDENTS = [
-  {
-    id: "1",
-    name: "Ahmad Farhan",
-    photo: "",
-    group: "Class 3A",
-    teacher: "Ustadz Hasan",
-  },
-  {
-    id: "2",
-    name: "Fatima Zahra",
-    photo: "",
-    group: "Class 3B",
-    teacher: "Ustadzah Aisha",
-  },
-  {
-    id: "3",
-    name: "Omar Ibrahim",
-    photo: "",
-    group: "Class 4A",
-    teacher: "Ustadz Hasan",
-  },
-];
-
-const MOCK_PROGRESS: ProgressEntry[] = [
-  {
-    id: "p1",
-    date: "2025-05-01",
-    type: "hafalan",
-    surahOrJilid: "Al-Fatiha",
-    ayatOrPage: "1-7",
-    notes: "Excellent memorization, perfect tajweed",
-  },
-  {
-    id: "p2",
-    date: "2025-05-02",
-    type: "tilawah",
-    surahOrJilid: "2",
-    ayatOrPage: "15",
-    notes: "Completed pages 15-17 with good fluency",
-  },
-  {
-    id: "p3",
-    date: "2025-05-05",
-    type: "hafalan",
-    surahOrJilid: "Al-Ikhlas",
-    ayatOrPage: "1-4",
-    notes: "Needs more practice on pronunciation",
-  },
-  {
-    id: "p4",
-    date: "2025-05-07",
-    type: "tilawah",
-    surahOrJilid: "2",
-    ayatOrPage: "18",
-    notes: "",
-  },
-  {
-    id: "p5",
-    date: "2025-05-09",
-    type: "hafalan",
-    surahOrJilid: "Al-Falaq",
-    ayatOrPage: "1-3",
-    notes: "Good effort, review needed tomorrow",
-  },
-];
+import { getStudentById, getProgressEntries, deleteStudent } from "@/services/studentService";
+import { StudentWithProgress, ProgressEntry } from "@/types/database";
 
 const TeacherStudentDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [student, setStudent] = useState<StudentWithProgress | null>(null);
+  const [progressEntries, setProgressEntries] = useState<ProgressEntry[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   
-  // Find student by ID
-  const student = MOCK_STUDENTS.find((s) => s.id === id);
+  useEffect(() => {
+    const fetchStudentData = async () => {
+      if (!id) return;
+      
+      setIsLoading(true);
+      try {
+        const studentData = await getStudentById(id);
+        setStudent(studentData);
+        
+        const entries = await getProgressEntries(id);
+        setProgressEntries(entries);
+      } catch (error) {
+        console.error("Error fetching student data:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load student details",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchStudentData();
+  }, [id]);
+  
+  if (isLoading) {
+    return (
+      <DashboardLayout userType="teacher">
+        <div className="text-center py-10">
+          <div className="w-16 h-16 border-4 border-kid-yellow border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-500">Loading student details...</p>
+        </div>
+      </DashboardLayout>
+    );
+  }
   
   if (!student) {
     return (
@@ -121,19 +92,26 @@ const TeacherStudentDetail = () => {
     navigate(`/teacher/student/${id}/edit`);
   };
 
-  const confirmDelete = () => {
-    // In a real app, this would be an API call to delete the student
-    toast({
-      title: "Student deleted",
-      description: "Student has been successfully removed",
-    });
-    
-    navigate("/teacher/students");
+  const confirmDelete = async () => {
+    const success = await deleteStudent(id);
+    if (success) {
+      navigate("/teacher/students");
+    }
   };
 
   const handleDeleteClick = () => {
     setDeleteDialogOpen(true);
   };
+
+  // Convert the progress entries to the format expected by ProgressList
+  const formattedProgressEntries = progressEntries.map(entry => ({
+    id: entry.id,
+    date: entry.date,
+    type: entry.type,
+    surahOrJilid: entry.surah_or_jilid || "",
+    ayatOrPage: entry.ayat_or_page || "",
+    notes: entry.notes || "",
+  }));
 
   return (
     <DashboardLayout userType="teacher">
@@ -192,7 +170,7 @@ const TeacherStudentDetail = () => {
 
         <div className="bg-white rounded-2xl p-6 shadow-sm">
           <h2 className="text-xl font-bold mb-6">Progress History</h2>
-          <ProgressList progressEntries={MOCK_PROGRESS} viewType="teacher" />
+          <ProgressList progressEntries={formattedProgressEntries} viewType="teacher" />
         </div>
       </div>
 

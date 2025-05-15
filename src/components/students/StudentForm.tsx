@@ -15,6 +15,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
+import { createStudent, updateStudent } from "@/services/studentService";
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -34,9 +35,14 @@ type FormValues = z.infer<typeof formSchema>;
 interface StudentFormProps {
   initialData?: FormValues;
   isEditing?: boolean;
+  studentId?: string;
 }
 
-const StudentForm: React.FC<StudentFormProps> = ({ initialData, isEditing = false }) => {
+const StudentForm: React.FC<StudentFormProps> = ({ 
+  initialData, 
+  isEditing = false,
+  studentId
+}) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
@@ -52,14 +58,41 @@ const StudentForm: React.FC<StudentFormProps> = ({ initialData, isEditing = fals
 
   const onSubmit = async (values: FormValues) => {
     setIsSubmitting(true);
-    console.log("Form submitted with values:", values);
     
-    // In a real app, you would save this data to Supabase
-    // For now, we'll simulate a successful submission
-    setTimeout(() => {
+    try {
+      let success = false;
+      
+      if (isEditing && studentId) {
+        // Update existing student
+        success = await updateStudent(studentId, {
+          name: values.name,
+          group_name: values.group,
+          teacher: values.teacher,
+          photo: values.photo
+        });
+      } else {
+        // Create new student
+        success = await createStudent({
+          name: values.name,
+          group_name: values.group,
+          teacher: values.teacher,
+          photo: values.photo,
+          grade: null
+        });
+      }
+      
+      if (success) {
+        if (isEditing && studentId) {
+          navigate(`/teacher/student/${studentId}`);
+        } else {
+          navigate("/teacher/students");
+        }
+      }
+    } catch (error) {
+      console.error("Error submitting form:", error);
+    } finally {
       setIsSubmitting(false);
-      navigate("/teacher/students");
-    }, 1000);
+    }
   };
 
   return (
@@ -158,7 +191,7 @@ const StudentForm: React.FC<StudentFormProps> = ({ initialData, isEditing = fals
             <Button
               type="button"
               variant="outline"
-              onClick={() => navigate("/teacher/students")}
+              onClick={() => isEditing && studentId ? navigate(`/teacher/student/${studentId}`) : navigate("/teacher/students")}
             >
               Cancel
             </Button>

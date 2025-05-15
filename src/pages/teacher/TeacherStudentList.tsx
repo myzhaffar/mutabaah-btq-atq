@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import DashboardLayout from "@/components/layout/DashboardLayout";
-import StudentCard, { Student } from "@/components/students/StudentCard";
+import StudentCard from "@/components/students/StudentCard";
 import { useNavigate } from "react-router-dom";
 import { Filter } from "lucide-react";
 import { 
@@ -26,74 +26,26 @@ import {
   AlertDialogTitle
 } from "@/components/ui/alert-dialog";
 import { toast } from "@/components/ui/use-toast";
-
-export const MOCK_STUDENTS: Student[] = [
-  {
-    id: "1",
-    name: "Ahmad Farhan",
-    photo: "",
-    group: "Class 3A",
-    grade: "3",
-    teacher: "Ustadz Hasan",
-    hafalanProgress: {
-      total: 5,
-      lastSurah: "Al-Fatiha",
-      percentage: 60,
-    },
-    tilawahProgress: {
-      jilid: "2",
-      page: 15,
-      percentage: 75,
-    },
-  },
-  {
-    id: "2",
-    name: "Fatima Zahra",
-    photo: "",
-    group: "Class 3B",
-    grade: "3",
-    teacher: "Ustadzah Aisha",
-    hafalanProgress: {
-      total: 8,
-      lastSurah: "Al-Falaq",
-      percentage: 80,
-    },
-    tilawahProgress: {
-      jilid: "3",
-      page: 7,
-      percentage: 40,
-    },
-  },
-  {
-    id: "3",
-    name: "Omar Ibrahim",
-    photo: "",
-    group: "Class 4A",
-    grade: "4",
-    teacher: "Ustadz Hasan",
-    hafalanProgress: {
-      total: 3,
-      lastSurah: "Al-Kafirun",
-      percentage: 35,
-    },
-    tilawahProgress: {
-      jilid: "1",
-      page: 20,
-      percentage: 90,
-    },
-  },
-];
+import { getStudents, deleteStudent } from "@/services/studentService";
+import { StudentWithProgress } from "@/types/database";
 
 // Extract unique grades and groups for filter options
-export const uniqueGrades = [...new Set(MOCK_STUDENTS.map(student => student.grade))];
-export const uniqueGroups = [...new Set(MOCK_STUDENTS.map(student => student.group))];
+const extractUniqueValuesFromStudents = (students: StudentWithProgress[]) => {
+  const uniqueGrades = [...new Set(students.map(student => student.grade).filter(Boolean))];
+  const uniqueGroups = [...new Set(students.map(student => student.group))];
+  
+  return { uniqueGrades, uniqueGroups };
+};
 
 const TeacherStudentList = () => {
   const navigate = useNavigate();
-  const [students, setStudents] = useState<Student[]>(MOCK_STUDENTS);
-  const [filteredStudents, setFilteredStudents] = useState<Student[]>(MOCK_STUDENTS);
+  const [students, setStudents] = useState<StudentWithProgress[]>([]);
+  const [filteredStudents, setFilteredStudents] = useState<StudentWithProgress[]>([]);
   const [studentToDelete, setStudentToDelete] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [uniqueGrades, setUniqueGrades] = useState<string[]>([]);
+  const [uniqueGroups, setUniqueGroups] = useState<string[]>([]);
   
   const {
     filters,
@@ -103,6 +55,28 @@ const TeacherStudentList = () => {
     resetFilters,
     setShowFilters
   } = useStudentFilters();
+
+  useEffect(() => {
+    const fetchStudents = async () => {
+      setIsLoading(true);
+      try {
+        const data = await getStudents();
+        setStudents(data);
+        
+        // Extract unique grades and groups
+        const { uniqueGrades, uniqueGroups } = extractUniqueValuesFromStudents(data);
+        setUniqueGrades(uniqueGrades);
+        setUniqueGroups(uniqueGroups);
+        
+      } catch (error) {
+        console.error("Failed to fetch students:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchStudents();
+  }, []);
 
   useEffect(() => {
     // Filter students based on search term, selected grades and groups
@@ -140,20 +114,18 @@ const TeacherStudentList = () => {
     setDeleteDialogOpen(true);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (!studentToDelete) return;
     
-    // In a real application, this would be an API call to delete the student
-    const updatedStudents = students.filter(student => student.id !== studentToDelete);
-    setStudents(updatedStudents);
-    setDeleteDialogOpen(false);
-    setStudentToDelete(null);
+    const success = await deleteStudent(studentToDelete);
     
-    // Show success toast
-    toast({
-      title: "Student deleted",
-      description: "Student has been successfully removed",
-    });
+    if (success) {
+      // Update local state to remove the student
+      const updatedStudents = students.filter(student => student.id !== studentToDelete);
+      setStudents(updatedStudents);
+      setDeleteDialogOpen(false);
+      setStudentToDelete(null);
+    }
   };
 
   return (
@@ -267,7 +239,12 @@ const TeacherStudentList = () => {
         </div>
       )}
 
-      {filteredStudents.length > 0 ? (
+      {isLoading ? (
+        <div className="text-center py-12">
+          <div className="w-16 h-16 border-4 border-kid-yellow border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-500">Loading students...</p>
+        </div>
+      ) : filteredStudents.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredStudents.map((student) => (
             <StudentCard

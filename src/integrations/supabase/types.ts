@@ -9,7 +9,156 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      hafalan_progress: {
+        Row: {
+          created_at: string
+          id: string
+          last_surah: string | null
+          percentage: number
+          student_id: string
+          total_surah: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_surah?: string | null
+          percentage?: number
+          student_id: string
+          total_surah?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_surah?: string | null
+          percentage?: number
+          student_id?: string
+          total_surah?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hafalan_progress_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      progress_entries: {
+        Row: {
+          ayat_or_page: string | null
+          created_at: string
+          date: string
+          id: string
+          notes: string | null
+          student_id: string
+          surah_or_jilid: string | null
+          type: string
+        }
+        Insert: {
+          ayat_or_page?: string | null
+          created_at?: string
+          date?: string
+          id?: string
+          notes?: string | null
+          student_id: string
+          surah_or_jilid?: string | null
+          type: string
+        }
+        Update: {
+          ayat_or_page?: string | null
+          created_at?: string
+          date?: string
+          id?: string
+          notes?: string | null
+          student_id?: string
+          surah_or_jilid?: string | null
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "progress_entries_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      students: {
+        Row: {
+          created_at: string
+          grade: string | null
+          group_name: string
+          id: string
+          name: string
+          photo: string | null
+          teacher: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          grade?: string | null
+          group_name: string
+          id?: string
+          name: string
+          photo?: string | null
+          teacher: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          grade?: string | null
+          group_name?: string
+          id?: string
+          name?: string
+          photo?: string | null
+          teacher?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      tilawah_progress: {
+        Row: {
+          created_at: string
+          id: string
+          jilid: string | null
+          page: number | null
+          percentage: number
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          jilid?: string | null
+          page?: number | null
+          percentage?: number
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          jilid?: string | null
+          page?: number | null
+          percentage?: number
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tilawah_progress_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

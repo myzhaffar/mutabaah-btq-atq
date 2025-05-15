@@ -1,43 +1,56 @@
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import StudentForm from "@/components/students/StudentForm";
 import { Button } from "@/components/ui/button";
-
-// Mock data (In real app this would come from Supabase)
-const MOCK_STUDENTS = [
-  {
-    id: "1",
-    name: "Ahmad Farhan",
-    group: "Class 3A",
-    teacher: "Ustadz Hasan",
-    photo: "",
-  },
-  {
-    id: "2",
-    name: "Fatima Zahra",
-    group: "Class 3B",
-    teacher: "Ustadzah Aisha",
-    photo: "",
-  },
-  {
-    id: "3",
-    name: "Omar Ibrahim",
-    group: "Class 4A",
-    teacher: "Ustadz Hasan",
-    photo: "",
-  },
-];
+import { getStudentById } from "@/services/studentService";
 
 const TeacherStudentEdit = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [studentData, setStudentData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   
-  // Find student by ID
-  const student = MOCK_STUDENTS.find((s) => s.id === id);
+  useEffect(() => {
+    const fetchStudent = async () => {
+      if (!id) return;
+      
+      try {
+        setIsLoading(true);
+        const student = await getStudentById(id);
+        
+        if (student) {
+          // Format the data for the form
+          setStudentData({
+            name: student.name,
+            group: student.group,
+            teacher: student.teacher,
+            photo: student.photo || "",
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching student:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchStudent();
+  }, [id]);
   
-  if (!student) {
+  if (isLoading) {
+    return (
+      <DashboardLayout userType="teacher">
+        <div className="text-center py-10">
+          <div className="w-16 h-16 border-4 border-kid-yellow border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-500">Loading student data...</p>
+        </div>
+      </DashboardLayout>
+    );
+  }
+  
+  if (!studentData && !isLoading) {
     return (
       <DashboardLayout userType="teacher">
         <div className="text-center py-10">
@@ -66,13 +79,9 @@ const TeacherStudentEdit = () => {
         ← Back to Student Details
       </Button>
       <StudentForm
-        initialData={{
-          name: student.name,
-          group: student.group,
-          teacher: student.teacher,
-          photo: student.photo,
-        }}
+        initialData={studentData}
         isEditing={true}
+        studentId={id}
       />
     </DashboardLayout>
   );

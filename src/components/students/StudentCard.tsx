@@ -1,16 +1,18 @@
+
 import React from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { Trash2 } from "lucide-react";
 
 export interface Student {
   id: string;
   name: string;
   photo: string;
   group: string;
-  grade?: string;  // Added grade property
+  grade?: string;
   teacher: string;
   hafalanProgress: {
     total: number;
@@ -27,9 +29,10 @@ export interface Student {
 interface StudentCardProps {
   student: Student;
   viewType: "teacher" | "parent";
+  onDelete?: (id: string) => void;
 }
 
-const StudentCard: React.FC<StudentCardProps> = ({ student, viewType }) => {
+const StudentCard: React.FC<StudentCardProps> = ({ student, viewType, onDelete }) => {
   return (
     <Card className="bg-white shadow-sm rounded-lg">
       <CardHeader>
@@ -64,7 +67,16 @@ const StudentCard: React.FC<StudentCardProps> = ({ student, viewType }) => {
           <span className="block text-right text-xs text-gray-500">{student.tilawahProgress.percentage}%</span>
         </div>
       </CardContent>
-      <CardFooter className="justify-end">
+      <CardFooter className="flex justify-between">
+        <Button
+          variant="outline"
+          size="sm"
+          className="rounded-full flex gap-1 text-destructive hover:bg-destructive hover:text-destructive-foreground"
+          onClick={() => onDelete && onDelete(student.id)}
+        >
+          <Trash2 className="h-4 w-4" />
+          Delete
+        </Button>
         <Button asChild variant="secondary" size="sm" className="rounded-full">
           <Link to={`/${viewType}/student/${student.id}`}>
             View Details

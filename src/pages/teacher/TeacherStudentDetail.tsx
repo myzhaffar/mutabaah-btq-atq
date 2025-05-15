@@ -1,10 +1,22 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import ProgressList, { ProgressEntry } from "@/components/progress/ProgressList";
+import { Trash2 } from "lucide-react";
+import { 
+  AlertDialog, 
+  AlertDialogAction, 
+  AlertDialogCancel, 
+  AlertDialogContent, 
+  AlertDialogDescription, 
+  AlertDialogFooter, 
+  AlertDialogHeader, 
+  AlertDialogTitle
+} from "@/components/ui/alert-dialog";
+import { toast } from "@/components/ui/use-toast";
 
 // Mock data (In real app this would come from Supabase)
 const MOCK_STUDENTS = [
@@ -77,6 +89,7 @@ const MOCK_PROGRESS: ProgressEntry[] = [
 const TeacherStudentDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   
   // Find student by ID
   const student = MOCK_STUDENTS.find((s) => s.id === id);
@@ -106,6 +119,20 @@ const TeacherStudentDetail = () => {
 
   const handleEditStudent = () => {
     navigate(`/teacher/student/${id}/edit`);
+  };
+
+  const confirmDelete = () => {
+    // In a real app, this would be an API call to delete the student
+    toast({
+      title: "Student deleted",
+      description: "Student has been successfully removed",
+    });
+    
+    navigate("/teacher/students");
+  };
+
+  const handleDeleteClick = () => {
+    setDeleteDialogOpen(true);
   };
 
   return (
@@ -144,6 +171,15 @@ const TeacherStudentDetail = () => {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3">
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="text-destructive hover:bg-destructive hover:text-destructive-foreground flex gap-1"
+                onClick={handleDeleteClick}
+              >
+                <Trash2 className="h-4 w-4" />
+                Delete
+              </Button>
               <Button onClick={handleEditStudent} variant="outline">
                 Edit Profile
               </Button>
@@ -159,6 +195,23 @@ const TeacherStudentDetail = () => {
           <ProgressList progressEntries={MOCK_PROGRESS} viewType="teacher" />
         </div>
       </div>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Student</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete {student.name}? This action cannot be undone and all associated data will be permanently removed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </DashboardLayout>
   );
 };

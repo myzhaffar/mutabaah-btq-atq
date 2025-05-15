@@ -15,6 +15,17 @@ import {
   DropdownMenuCheckboxItem
 } from "@/components/ui/dropdown-menu";
 import { useStudentFilters } from "@/hooks/useStudentFilters";
+import { 
+  AlertDialog, 
+  AlertDialogAction, 
+  AlertDialogCancel, 
+  AlertDialogContent, 
+  AlertDialogDescription, 
+  AlertDialogFooter, 
+  AlertDialogHeader, 
+  AlertDialogTitle
+} from "@/components/ui/alert-dialog";
+import { toast } from "@/components/ui/use-toast";
 
 export const MOCK_STUDENTS: Student[] = [
   {
@@ -79,8 +90,10 @@ export const uniqueGroups = [...new Set(MOCK_STUDENTS.map(student => student.gro
 
 const TeacherStudentList = () => {
   const navigate = useNavigate();
-  const [students] = useState<Student[]>(MOCK_STUDENTS);
+  const [students, setStudents] = useState<Student[]>(MOCK_STUDENTS);
   const [filteredStudents, setFilteredStudents] = useState<Student[]>(MOCK_STUDENTS);
+  const [studentToDelete, setStudentToDelete] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   
   const {
     filters,
@@ -120,6 +133,27 @@ const TeacherStudentList = () => {
 
   const handleAddStudent = () => {
     navigate("/teacher/student/new");
+  };
+
+  const handleDeleteConfirm = (id: string) => {
+    setStudentToDelete(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (!studentToDelete) return;
+    
+    // In a real application, this would be an API call to delete the student
+    const updatedStudents = students.filter(student => student.id !== studentToDelete);
+    setStudents(updatedStudents);
+    setDeleteDialogOpen(false);
+    setStudentToDelete(null);
+    
+    // Show success toast
+    toast({
+      title: "Student deleted",
+      description: "Student has been successfully removed",
+    });
   };
 
   return (
@@ -240,6 +274,7 @@ const TeacherStudentList = () => {
               key={student.id}
               student={student}
               viewType="teacher"
+              onDelete={handleDeleteConfirm}
             />
           ))}
         </div>
@@ -259,6 +294,23 @@ const TeacherStudentList = () => {
           </Button>
         </div>
       )}
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Student</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this student? This action cannot be undone and all associated data will be permanently removed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setStudentToDelete(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </DashboardLayout>
   );
 };

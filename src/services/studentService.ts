@@ -149,7 +149,11 @@ export async function getProgressEntries(studentId: string): Promise<ProgressEnt
       throw error;
     }
 
-    return data;
+    // Type assertion to ensure 'type' is properly typed as 'hafalan' | 'tilawah'
+    return data.map(entry => ({
+      ...entry,
+      type: entry.type as 'hafalan' | 'tilawah'
+    })) as ProgressEntry[];
   } catch (error) {
     console.error("Error fetching progress entries:", error);
     toast({

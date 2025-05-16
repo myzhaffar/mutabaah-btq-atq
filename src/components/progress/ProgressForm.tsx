@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,6 +30,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { addProgressEntry } from "@/services/studentService";
 
 const formSchema = z.object({
   date: z.date({
@@ -77,13 +77,21 @@ const ProgressForm: React.FC<ProgressFormProps> = ({
 
   const onSubmit = async (values: FormValues) => {
     setIsSubmitting(true);
-    console.log("Progress submitted:", values);
-
-    // In a real app, you would save this to Supabase
-    setTimeout(() => {
-      setIsSubmitting(false);
+    
+    const success = await addProgressEntry({
+      student_id: studentId,
+      date: format(values.date, 'yyyy-MM-dd'),
+      type: values.type,
+      surah_or_jilid: values.surahOrJilid,
+      ayat_or_page: values.ayatOrPage,
+      notes: values.notes || null
+    });
+    
+    setIsSubmitting(false);
+    
+    if (success) {
       navigate(`/teacher/student/${studentId}`);
-    }, 1000);
+    }
   };
 
   return (

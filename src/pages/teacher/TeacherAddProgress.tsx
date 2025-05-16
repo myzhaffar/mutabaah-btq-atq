@@ -1,10 +1,9 @@
-
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import ProgressForm from "@/components/progress/ProgressForm";
 import { Button } from "@/components/ui/button";
-import { getStudentById } from "@/services/studentService";
+import { getStudentById } from "@/services/student";
 import { StudentWithProgress } from "@/types/database";
 import { Skeleton } from "@/components/ui/skeleton";
 

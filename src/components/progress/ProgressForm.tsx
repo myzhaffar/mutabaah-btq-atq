@@ -30,7 +30,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { addProgressEntry } from "@/services/studentService";
+import { addProgressEntry } from "@/services/student";
 
 const formSchema = z.object({
   date: z.date({

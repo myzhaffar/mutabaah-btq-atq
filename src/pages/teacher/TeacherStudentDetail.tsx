@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -17,7 +16,7 @@ import {
   AlertDialogTitle
 } from "@/components/ui/alert-dialog";
 import { toast } from "@/components/ui/use-toast";
-import { getStudentById, getProgressEntries, deleteStudent } from "@/services/studentService";
+import { getStudentById, getProgressEntries, deleteStudent } from "@/services/student";
 import { StudentWithProgress, ProgressEntry } from "@/types/database";
 
 const TeacherStudentDetail = () => {

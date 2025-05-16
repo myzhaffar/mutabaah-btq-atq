@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,7 +25,7 @@ import {
   AlertDialogTitle
 } from "@/components/ui/alert-dialog";
 import { toast } from "@/components/ui/use-toast";
-import { getStudents, deleteStudent } from "@/services/studentService";
+import { getStudents, deleteStudent } from "@/services/student";
 import { StudentWithProgress } from "@/types/database";
 
 // Extract unique grades and groups for filter options

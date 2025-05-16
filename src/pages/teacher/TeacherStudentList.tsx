@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,10 +31,10 @@ import { StudentWithProgress } from "@/types/database";
 
 // Extract unique grades and groups for filter options
 const extractUniqueValuesFromStudents = (students: StudentWithProgress[]) => {
-  const uniqueGrades = [...new Set(students.map(student => student.grade).filter(Boolean))];
-  const uniqueGroups = [...new Set(students.map(student => student.group))];
+  const uniqueGrades = [...new Set(students.map(student => student.group).filter(Boolean))];
+  const uniqueTeachers = [...new Set(students.map(student => student.teacher))];
   
-  return { uniqueGrades, uniqueGroups };
+  return { uniqueGrades, uniqueTeachers };
 };
 
 const TeacherStudentList = () => {
@@ -44,7 +45,7 @@ const TeacherStudentList = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [uniqueGrades, setUniqueGrades] = useState<string[]>([]);
-  const [uniqueGroups, setUniqueGroups] = useState<string[]>([]);
+  const [uniqueTeachers, setUniqueTeachers] = useState<string[]>([]);
   
   const {
     filters,
@@ -62,10 +63,10 @@ const TeacherStudentList = () => {
         const data = await getStudents();
         setStudents(data);
         
-        // Extract unique grades and groups
-        const { uniqueGrades, uniqueGroups } = extractUniqueValuesFromStudents(data);
+        // Extract unique grades and teachers
+        const { uniqueGrades, uniqueTeachers } = extractUniqueValuesFromStudents(data);
         setUniqueGrades(uniqueGrades);
-        setUniqueGroups(uniqueGroups);
+        setUniqueTeachers(uniqueTeachers);
         
       } catch (error) {
         console.error("Failed to fetch students:", error);
@@ -78,7 +79,7 @@ const TeacherStudentList = () => {
   }, []);
 
   useEffect(() => {
-    // Filter students based on search term, selected grades and groups
+    // Filter students based on search term, selected grades and teachers
     let filtered = students;
     
     if (filters.searchTerm) {
@@ -91,13 +92,13 @@ const TeacherStudentList = () => {
     
     if (filters.selectedGrades.length > 0) {
       filtered = filtered.filter(student => 
-        student.grade && filters.selectedGrades.includes(student.grade)
+        filters.selectedGrades.includes(student.group)
       );
     }
     
     if (filters.selectedGroups.length > 0) {
       filtered = filtered.filter(student => 
-        filters.selectedGroups.includes(student.group)
+        filters.selectedGroups.includes(student.teacher)
       );
     }
     
@@ -176,7 +177,7 @@ const TeacherStudentList = () => {
         <div className="bg-white p-4 rounded-lg shadow-sm mb-6 animate-fade-in">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Grade</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Grade/Class</label>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button 
@@ -185,12 +186,12 @@ const TeacherStudentList = () => {
                   >
                     {filters.selectedGrades.length > 0 
                       ? `${filters.selectedGrades.length} selected` 
-                      : "Choose grade"}
+                      : "Choose grade/class"}
                     <span className="ml-2 opacity-70">▼</span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56 bg-white">
-                  <DropdownMenuLabel>Select Grades</DropdownMenuLabel>
+                  <DropdownMenuLabel>Select Grades/Classes</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   {uniqueGrades.map((grade) => (
                     <DropdownMenuCheckboxItem
@@ -198,7 +199,7 @@ const TeacherStudentList = () => {
                       checked={filters.selectedGrades.includes(grade)}
                       onCheckedChange={() => toggleGrade(grade)}
                     >
-                      Grade {grade}
+                      {grade}
                     </DropdownMenuCheckboxItem>
                   ))}
                 </DropdownMenuContent>
@@ -206,7 +207,7 @@ const TeacherStudentList = () => {
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Group</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Teacher</label>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button 
@@ -215,20 +216,20 @@ const TeacherStudentList = () => {
                   >
                     {filters.selectedGroups.length > 0 
                       ? `${filters.selectedGroups.length} selected` 
-                      : "Choose group"}
+                      : "Choose teacher"}
                     <span className="ml-2 opacity-70">▼</span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56 bg-white">
-                  <DropdownMenuLabel>Select Groups</DropdownMenuLabel>
+                  <DropdownMenuLabel>Select Teachers</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  {uniqueGroups.map((group) => (
+                  {uniqueTeachers.map((teacher) => (
                     <DropdownMenuCheckboxItem
-                      key={group}
-                      checked={filters.selectedGroups.includes(group)}
-                      onCheckedChange={() => toggleGroup(group)}
+                      key={teacher}
+                      checked={filters.selectedGroups.includes(teacher)}
+                      onCheckedChange={() => toggleGroup(teacher)}
                     >
-                      {group}
+                      {teacher}
                     </DropdownMenuCheckboxItem>
                   ))}
                 </DropdownMenuContent>

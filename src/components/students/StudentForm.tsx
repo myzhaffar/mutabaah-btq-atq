@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,7 +22,7 @@ const formSchema = z.object({
     message: "Name must be at least 2 characters.",
   }),
   group: z.string().min(1, {
-    message: "Please select a group.",
+    message: "Please enter a grade/class.",
   }),
   teacher: z.string().min(1, {
     message: "Please enter a teacher name.",
@@ -128,16 +129,16 @@ const StudentForm: React.FC<StudentFormProps> = ({
             name="group"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Learning Group</FormLabel>
+                <FormLabel>Grade/Class</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="Enter group name"
+                    placeholder="Enter grade or class"
                     className="input-kid"
                     {...field}
                   />
                 </FormControl>
                 <FormDescription>
-                  The learning group or class the student belongs to.
+                  The grade or class the student belongs to.
                 </FormDescription>
                 <FormMessage />
               </FormItem>

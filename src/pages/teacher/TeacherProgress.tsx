@@ -1,311 +1,112 @@
-
-import React, { useEffect, useState } from "react";
-import DashboardLayout from "@/components/layout/DashboardLayout";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { useNavigate } from "react-router-dom";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Filter } from "lucide-react";
-import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuCheckboxItem
-} from "@/components/ui/dropdown-menu";
-import { useStudentFilters } from "@/hooks/useStudentFilters";
-import { getStudents } from "@/services/studentService";
-import { StudentWithProgress } from "@/types/database";
-
-type ProgressSummary = {
-  id: string;
-  name: string;
-  grade: string | undefined;
-  group: string;
-  hafalanProgress: number;
-  tilawahProgress: number;
-};
+import React, { useState, useEffect } from 'react';
+import DashboardLayout from '@/components/layout/DashboardLayout';
+import { getStudents, getProgressEntries } from '@/services/student';
+import { StudentWithProgress } from '@/types/database';
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 const TeacherProgress = () => {
-  const navigate = useNavigate();
-  const [activeTab, setActiveTab] = React.useState<string>("hafalan");
   const [students, setStudents] = useState<StudentWithProgress[]>([]);
-  const [progressSummary, setProgressSummary] = useState<ProgressSummary[]>([]);
+  const [search, setSearch] = useState("");
+  const [groups, setGroups] = useState<string[]>([]);
+  const [teachers, setTeachers] = useState<string[]>([]);
+  const [selectedGroup, setSelectedGroup] = useState<string>("");
+  const [selectedTeacher, setSelectedTeacher] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
-  const [uniqueGrades, setUniqueGrades] = useState<string[]>([]);
-  const [uniqueGroups, setUniqueGroups] = useState<string[]>([]);
-  
-  const {
-    filters,
-    setSearchTerm,
-    toggleGrade,
-    toggleGroup,
-    resetFilters,
-    setShowFilters
-  } = useStudentFilters();
 
   useEffect(() => {
-    const fetchStudents = async () => {
-      setIsLoading(true);
+    const fetchStudentsData = async () => {
       try {
         const studentsData = await getStudents();
         setStudents(studentsData);
         
-        // Create progress summary data
-        const summary = studentsData.map(student => ({
-          id: student.id,
-          name: student.name,
-          grade: student.grade,
-          group: student.group,
-          hafalanProgress: student.hafalanProgress.percentage,
-          tilawahProgress: student.tilawahProgress.percentage,
-        }));
+        // Extract unique group names and teacher names
+        const groupNames = Array.from(new Set(studentsData.map(s => s.group)));
+        const teacherNames = Array.from(new Set(studentsData.map(s => s.teacher)));
         
-        setProgressSummary(summary);
-        
-        // Extract unique grades and groups
-        const grades = [...new Set(studentsData.map(student => student.grade).filter(Boolean))];
-        const groups = [...new Set(studentsData.map(student => student.group))];
-        
-        setUniqueGrades(grades);
-        setUniqueGroups(groups);
-        
+        // Update the state with string arrays, ensuring type safety
+        setGroups(groupNames as string[]);
+        setTeachers(teacherNames as string[]);
       } catch (error) {
-        console.error("Failed to fetch students:", error);
+        console.error("Error fetching students:", error);
       } finally {
         setIsLoading(false);
       }
     };
     
-    fetchStudents();
+    fetchStudentsData();
   }, []);
 
-  // Filter the progress data based on the filters
-  const filteredProgress = progressSummary.filter(student => {
-    // Filter by search term
-    if (filters.searchTerm && !student.name.toLowerCase().includes(filters.searchTerm.toLowerCase())) {
-      return false;
-    }
-    
-    // Filter by grade
-    if (filters.selectedGrades.length > 0 && (!student.grade || !filters.selectedGrades.includes(student.grade))) {
-      return false;
-    }
-    
-    // Filter by group
-    if (filters.selectedGroups.length > 0 && !filters.selectedGroups.includes(student.group)) {
-      return false;
-    }
-    
-    return true;
+  const filteredStudents = students.filter((student) => {
+    const searchLower = search.toLowerCase();
+    const nameMatch = student.name.toLowerCase().includes(searchLower);
+    const groupMatch = selectedGroup ? student.group === selectedGroup : true;
+    const teacherMatch = selectedTeacher ? student.teacher === selectedTeacher : true;
+
+    return nameMatch && groupMatch && teacherMatch;
   });
 
   return (
-    <DashboardLayout userType="teacher" currentTab="progress" onTabChange={(tab) => navigate(`/teacher/${tab}`)}>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold mb-4">Students Progress Overview</h1>
-        <p className="text-gray-500">Track and monitor all students' Quran memorization and recitation progress</p>
-      </div>
+    <DashboardLayout userType="teacher">
+      <div className="container mx-auto py-6">
+        <h1 className="text-2xl font-bold mb-4">Student Progress</h1>
 
-      <div className="mb-6 flex flex-col sm:flex-row justify-between gap-4">
-        <div className="flex flex-col sm:flex-row gap-3 w-full">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
           <Input
             type="search"
-            placeholder="Search students..."
-            className="input-kid max-w-xs"
-            value={filters.searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search by name..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
           />
-        </div>
-      </div>
 
-      <div className="mb-6 flex flex-wrap gap-3 items-center">
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="flex items-center gap-2 rounded-full"
-          onClick={() => setShowFilters(!filters.showFilters)}
-        >
-          <Filter className="h-4 w-4" />
-          {filters.showFilters ? "Hide Filters" : "Show Filters"}
-        </Button>
-        
-        {filters.showFilters && (
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={resetFilters}
-            className="rounded-full text-sm"
-          >
-            Reset Filters
-          </Button>
+          <Select onValueChange={setSelectedGroup}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Filter by Group" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">All Groups</SelectItem>
+              {groups.map(group => (
+                <SelectItem key={group} value={group}>{group}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select onValueChange={setSelectedTeacher}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Filter by Teacher" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">All Teachers</SelectItem>
+              {teachers.map(teacher => (
+                <SelectItem key={teacher} value={teacher}>{teacher}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {isLoading ? (
+          <div className="text-center">Loading students...</div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredStudents.map((student) => (
+              <div key={student.id} className="bg-white rounded-lg shadow-md p-4">
+                <h2 className="text-lg font-semibold">{student.name}</h2>
+                <p>Group: {student.group}</p>
+                <p>Teacher: {student.teacher}</p>
+                <p>Hafalan Progress: {student.hafalanProgress.percentage}%</p>
+                <p>Tilawah Progress: {student.tilawahProgress.percentage}%</p>
+              </div>
+            ))}
+          </div>
         )}
       </div>
-      
-      {filters.showFilters && (
-        <div className="bg-white p-4 rounded-lg shadow-sm mb-6 animate-fade-in">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Grade</label>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button 
-                    variant="outline" 
-                    className="w-full justify-between"
-                  >
-                    {filters.selectedGrades.length > 0 
-                      ? `${filters.selectedGrades.length} selected` 
-                      : "Choose grade"}
-                    <span className="ml-2 opacity-70">▼</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56 bg-white">
-                  <DropdownMenuLabel>Select Grades</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  {uniqueGrades.map((grade) => (
-                    <DropdownMenuCheckboxItem
-                      key={grade}
-                      checked={filters.selectedGrades.includes(grade)}
-                      onCheckedChange={() => toggleGrade(grade)}
-                    >
-                      Grade {grade}
-                    </DropdownMenuCheckboxItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Group</label>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button 
-                    variant="outline" 
-                    className="w-full justify-between"
-                  >
-                    {filters.selectedGroups.length > 0 
-                      ? `${filters.selectedGroups.length} selected` 
-                      : "Choose group"}
-                    <span className="ml-2 opacity-70">▼</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56 bg-white">
-                  <DropdownMenuLabel>Select Groups</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  {uniqueGroups.map((group) => (
-                    <DropdownMenuCheckboxItem
-                      key={group}
-                      checked={filters.selectedGroups.includes(group)}
-                      onCheckedChange={() => toggleGroup(group)}
-                    >
-                      {group}
-                    </DropdownMenuCheckboxItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {isLoading ? (
-        <div className="text-center py-12">
-          <div className="w-16 h-16 border-4 border-kid-yellow border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-500">Loading progress data...</p>
-        </div>
-      ) : (
-        <Tabs
-          value={activeTab}
-          onValueChange={setActiveTab}
-          className="w-full mb-6"
-        >
-          <TabsList className="w-full max-w-xs">
-            <TabsTrigger value="hafalan" className="flex-1">Hafalan Progress</TabsTrigger>
-            <TabsTrigger value="tilawah" className="flex-1">Tilawah Progress</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="hafalan" className="mt-6">
-            {filteredProgress.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {filteredProgress.map((student) => (
-                  <Card key={student.id} className="overflow-hidden border-none shadow-md rounded-2xl">
-                    <CardHeader className="bg-gradient-to-r from-kid-green/10 to-kid-teal/10 pb-2">
-                      <CardTitle className="text-lg">{student.name}</CardTitle>
-                      <p className="text-xs text-gray-500">{student.group}</p>
-                    </CardHeader>
-                    <CardContent className="pt-4">
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between mb-1">
-                          <p className="text-sm font-medium">Hafalan Progress</p>
-                          <p className="text-sm font-semibold">{student.hafalanProgress}%</p>
-                        </div>
-                        <Progress value={student.hafalanProgress} className="h-3 rounded-full" />
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="w-full mt-2"
-                          onClick={() => navigate(`/teacher/student/${student.id}`)}
-                        >
-                          View Details
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12 bg-white rounded-lg shadow-sm">
-                <h3 className="text-xl font-bold">No students found</h3>
-                <p className="text-gray-500 mt-2">
-                  No students match your search criteria.
-                </p>
-              </div>
-            )}
-          </TabsContent>
-
-          <TabsContent value="tilawah" className="mt-6">
-            {filteredProgress.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {filteredProgress.map((student) => (
-                  <Card key={student.id} className="overflow-hidden border-none shadow-md rounded-2xl">
-                    <CardHeader className="bg-gradient-to-r from-kid-purple/10 to-kid-blue/10 pb-2">
-                      <CardTitle className="text-lg">{student.name}</CardTitle>
-                      <p className="text-xs text-gray-500">{student.group}</p>
-                    </CardHeader>
-                    <CardContent className="pt-4">
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between mb-1">
-                          <p className="text-sm font-medium">Tilawah Progress</p>
-                          <p className="text-sm font-semibold">{student.tilawahProgress}%</p>
-                        </div>
-                        <Progress value={student.tilawahProgress} className="h-3 rounded-full" />
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="w-full mt-2"
-                          onClick={() => navigate(`/teacher/student/${student.id}`)}
-                        >
-                          View Details
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12 bg-white rounded-lg shadow-sm">
-                <h3 className="text-xl font-bold">No students found</h3>
-                <p className="text-gray-500 mt-2">
-                  No students match your search criteria.
-                </p>
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
-      )}
     </DashboardLayout>
   );
 };

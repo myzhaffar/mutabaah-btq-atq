@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,7 +14,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
-import { createStudent, updateStudent } from "@/services/studentService";
+import { createStudent, updateStudent } from "@/services/student";
 
 const formSchema = z.object({
   name: z.string().min(2, {

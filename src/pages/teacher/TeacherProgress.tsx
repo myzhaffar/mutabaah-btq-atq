@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { getStudents, getProgressEntries } from '@/services/student';
@@ -27,7 +28,7 @@ const TeacherProgress = () => {
         const studentsData = await getStudents();
         setStudents(studentsData);
         
-        // Extract unique group names and teacher names
+        // Extract unique group names (class/grade) and teacher names
         const groupNames = Array.from(new Set(studentsData.map(s => s.group)));
         const teacherNames = Array.from(new Set(studentsData.map(s => s.teacher)));
         
@@ -68,10 +69,10 @@ const TeacherProgress = () => {
 
           <Select onValueChange={setSelectedGroup}>
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="Filter by Group" />
+              <SelectValue placeholder="Filter by Grade/Class" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Groups</SelectItem>
+              <SelectItem value="">All Classes</SelectItem>
               {groups.map(group => (
                 <SelectItem key={group} value={group}>{group}</SelectItem>
               ))}
@@ -98,7 +99,7 @@ const TeacherProgress = () => {
             {filteredStudents.map((student) => (
               <div key={student.id} className="bg-white rounded-lg shadow-md p-4">
                 <h2 className="text-lg font-semibold">{student.name}</h2>
-                <p>Group: {student.group}</p>
+                <p>Grade/Class: {student.group}</p>
                 <p>Teacher: {student.teacher}</p>
                 <p>Hafalan Progress: {student.hafalanProgress.percentage}%</p>
                 <p>Tilawah Progress: {student.tilawahProgress.percentage}%</p>

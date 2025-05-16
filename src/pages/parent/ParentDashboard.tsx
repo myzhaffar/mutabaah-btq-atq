@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from "react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
-import StudentCard, { Student } from "@/components/students/StudentCard";
+import StudentCard from "@/components/students/StudentCard";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Filter } from "lucide-react";
@@ -13,75 +13,43 @@ import {
   DropdownMenuSeparator,
   DropdownMenuCheckboxItem
 } from "@/components/ui/dropdown-menu";
-import { Checkbox } from "@/components/ui/checkbox";
-
-// Enhanced mock data with more details
-const MOCK_CHILDREN: Student[] = [
-  {
-    id: "1",
-    name: "Ahmad Farhan",
-    photo: "",
-    group: "Class 3A",
-    grade: "3",
-    teacher: "Ustadz Hasan",
-    hafalanProgress: {
-      total: 5,
-      lastSurah: "Al-Fatiha",
-      percentage: 75, // 75% complete of current surah
-    },
-    tilawahProgress: {
-      jilid: "2",
-      page: 15,
-      percentage: 60, // 60% complete of current jilid
-    },
-  },
-  {
-    id: "2",
-    name: "Aisyah Nur",
-    photo: "",
-    group: "Class 2B",
-    grade: "2",
-    teacher: "Ustadzah Fatimah",
-    hafalanProgress: {
-      total: 3,
-      lastSurah: "An-Nas",
-      percentage: 40, // 40% complete of current surah
-    },
-    tilawahProgress: {
-      jilid: "1",
-      page: 8,
-      percentage: 25, // 25% complete of current jilid
-    },
-  },
-  {
-    id: "3",
-    name: "Muhammad Haikal",
-    photo: "",
-    group: "Class 3B",
-    grade: "3",
-    teacher: "Ustadz Ahmed",
-    hafalanProgress: {
-      total: 4,
-      lastSurah: "Al-Ikhlas",
-      percentage: 60, // 60% complete of current surah
-    },
-    tilawahProgress: {
-      jilid: "2",
-      page: 12,
-      percentage: 45, // 45% complete of current jilid
-    },
-  },
-];
-
-// Extract unique grades and groups for filter options
-const uniqueGrades = [...new Set(MOCK_CHILDREN.map(child => child.grade))];
-const uniqueGroups = [...new Set(MOCK_CHILDREN.map(child => child.group))];
+import { getStudents } from "@/services/student";
+import { StudentWithProgress } from "@/types/database";
 
 const ParentDashboard = () => {
+  const [students, setStudents] = useState<StudentWithProgress[]>([]);
   const [selectedGrades, setSelectedGrades] = useState<string[]>([]);
   const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState<boolean>(false);
-  const [filteredChildren, setFilteredChildren] = useState<Student[]>(MOCK_CHILDREN);
+  const [filteredStudents, setFilteredStudents] = useState<StudentWithProgress[]>([]);
+  const [uniqueGrades, setUniqueGrades] = useState<string[]>([]);
+  const [uniqueGroups, setUniqueGroups] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch real student data from database
+  useEffect(() => {
+    const fetchStudentsData = async () => {
+      setIsLoading(true);
+      try {
+        const studentsData = await getStudents();
+        setStudents(studentsData);
+        
+        // Extract unique grades and teachers for filters
+        const grades = Array.from(new Set(studentsData.map(s => s.group)));
+        const teachers = Array.from(new Set(studentsData.map(s => s.teacher)));
+        
+        setUniqueGrades(grades as string[]);
+        setUniqueGroups(teachers as string[]);
+        setFilteredStudents(studentsData);
+      } catch (error) {
+        console.error("Error fetching students:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchStudentsData();
+  }, []);
 
   // Toggle grade selection
   const toggleGrade = (grade: string) => {
@@ -92,7 +60,7 @@ const ParentDashboard = () => {
     );
   };
 
-  // Toggle group selection
+  // Toggle group (teacher) selection
   const toggleGroup = (group: string) => {
     setSelectedGroups(current => 
       current.includes(group)
@@ -103,18 +71,18 @@ const ParentDashboard = () => {
 
   // Apply filters when selections change
   useEffect(() => {
-    let result = MOCK_CHILDREN;
+    let result = students;
     
     if (selectedGrades.length > 0) {
-      result = result.filter(child => selectedGrades.includes(child.grade));
+      result = result.filter(child => selectedGrades.includes(child.group));
     }
     
     if (selectedGroups.length > 0) {
-      result = result.filter(child => selectedGroups.includes(child.group));
+      result = result.filter(child => selectedGroups.includes(child.teacher));
     }
     
-    setFilteredChildren(result);
-  }, [selectedGrades, selectedGroups]);
+    setFilteredStudents(result);
+  }, [selectedGrades, selectedGroups, students]);
 
   // Reset all filters
   const resetFilters = () => {
@@ -155,7 +123,7 @@ const ParentDashboard = () => {
         <div className="bg-white p-4 rounded-lg shadow-sm mb-6 animate-fade-in">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Grade</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Grade/Class</label>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button 
@@ -164,12 +132,12 @@ const ParentDashboard = () => {
                   >
                     {selectedGrades.length > 0 
                       ? `${selectedGrades.length} selected` 
-                      : "Choose grade"}
+                      : "Choose grade/class"}
                     <span className="ml-2 opacity-70">▼</span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56 bg-white">
-                  <DropdownMenuLabel>Select Grades</DropdownMenuLabel>
+                  <DropdownMenuLabel>Select Grades/Classes</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   {uniqueGrades.map((grade) => (
                     <DropdownMenuCheckboxItem
@@ -177,7 +145,7 @@ const ParentDashboard = () => {
                       checked={selectedGrades.includes(grade)}
                       onCheckedChange={() => toggleGrade(grade)}
                     >
-                      Grade {grade}
+                      {grade}
                     </DropdownMenuCheckboxItem>
                   ))}
                 </DropdownMenuContent>
@@ -185,7 +153,7 @@ const ParentDashboard = () => {
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Group</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Teacher</label>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button 
@@ -194,20 +162,20 @@ const ParentDashboard = () => {
                   >
                     {selectedGroups.length > 0 
                       ? `${selectedGroups.length} selected` 
-                      : "Choose group"}
+                      : "Choose teacher"}
                     <span className="ml-2 opacity-70">▼</span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56 bg-white">
-                  <DropdownMenuLabel>Select Groups</DropdownMenuLabel>
+                  <DropdownMenuLabel>Select Teachers</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  {uniqueGroups.map((group) => (
+                  {uniqueGroups.map((teacher) => (
                     <DropdownMenuCheckboxItem
-                      key={group}
-                      checked={selectedGroups.includes(group)}
-                      onCheckedChange={() => toggleGroup(group)}
+                      key={teacher}
+                      checked={selectedGroups.includes(teacher)}
+                      onCheckedChange={() => toggleGroup(teacher)}
                     >
-                      {group}
+                      {teacher}
                     </DropdownMenuCheckboxItem>
                   ))}
                 </DropdownMenuContent>
@@ -217,10 +185,15 @@ const ParentDashboard = () => {
         </div>
       )}
 
-      {filteredChildren.length > 0 ? (
+      {isLoading ? (
+        <div className="text-center py-12">
+          <div className="w-16 h-16 border-4 border-kid-yellow border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-500">Loading students...</p>
+        </div>
+      ) : filteredStudents.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredChildren.map((child) => (
-            <StudentCard key={child.id} student={child} viewType="parent" />
+          {filteredStudents.map((student) => (
+            <StudentCard key={student.id} student={student} viewType="parent" />
           ))}
         </div>
       ) : (

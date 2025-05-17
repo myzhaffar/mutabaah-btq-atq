@@ -68,16 +68,18 @@ const StudentCard: React.FC<StudentCardProps> = ({ student, viewType, onDelete }
         </div>
       </CardContent>
       <CardFooter className="flex justify-between">
-        <Button
-          variant="outline"
-          size="sm"
-          className="rounded-full flex gap-1 text-destructive hover:bg-destructive hover:text-destructive-foreground"
-          onClick={() => onDelete && onDelete(student.id)}
-        >
-          <Trash2 className="h-4 w-4" />
-          Delete
-        </Button>
-        <Button asChild variant="secondary" size="sm" className="rounded-full">
+        {viewType === "teacher" && onDelete && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="rounded-full flex gap-1 text-destructive hover:bg-destructive hover:text-destructive-foreground"
+            onClick={() => onDelete(student.id)}
+          >
+            <Trash2 className="h-4 w-4" />
+            Delete
+          </Button>
+        )}
+        <Button asChild variant="secondary" size="sm" className={`rounded-full ${viewType === "parent" ? "ml-auto" : ""}`}>
           <Link to={`/${viewType}/student/${student.id}`}>
             View Details
           </Link>

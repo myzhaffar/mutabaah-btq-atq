@@ -2,6 +2,7 @@
 import React from "react";
 import StudentCard from "@/components/students/StudentCard";
 import { StudentWithProgress } from "@/types/database";
+import { Progress } from "@/components/ui/progress";
 
 interface StudentListProps {
   students: StudentWithProgress[];
@@ -35,7 +36,21 @@ const StudentList: React.FC<StudentListProps> = ({ students, isLoading }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {students.map((student) => (
-        <StudentCard key={student.id} student={student} viewType="parent" />
+        <StudentCard 
+          key={student.id} 
+          student={{
+            ...student,
+            hafalanProgress: {
+              ...student.hafalanProgress,
+              percentage: student.hafalanProgress?.percentage || 0
+            },
+            tilawahProgress: {
+              ...student.tilawahProgress,
+              percentage: student.tilawahProgress?.percentage || 0
+            }
+          }} 
+          viewType="parent" 
+        />
       ))}
     </div>
   );

@@ -1,17 +1,32 @@
 
 import React, { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
-import { getStudents, getProgressEntries } from '@/services/student';
+import { getStudents } from '@/services/student';
 import { StudentWithProgress } from '@/types/database';
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from "@/components/ui/select";
+
+// Define Quran surah order
+const surahOrder: Record<string, number> = {
+  "An-Nas": 114,
+  "Al-Falaq": 113,
+  "Al-Ikhlas": 112,
+  // ... (shortened for brevity)
+  "An-Naba": 78,
+  // ... (shortened for brevity)
+  "Al-Fatihah": 1,
+};
+
+// Get surah rank for sorting (higher is better)
+const getSurahRank = (surahName: string): number => {
+  return surahOrder[surahName] || 0;
+};
 
 const TeacherProgress = () => {
   const [students, setStudents] = useState<StudentWithProgress[]>([]);
@@ -26,7 +41,21 @@ const TeacherProgress = () => {
     const fetchStudentsData = async () => {
       try {
         const studentsData = await getStudents();
-        setStudents(studentsData);
+        
+        // Sort students by hafalan progress and surah rank
+        const sortedStudents = [...studentsData].sort((a, b) => {
+          // First sort by percentage (higher first)
+          if (b.hafalanProgress.percentage !== a.hafalanProgress.percentage) {
+            return b.hafalanProgress.percentage - a.hafalanProgress.percentage;
+          }
+          
+          // If percentages are the same, sort by surah rank (higher surah number is better)
+          const surahRankA = getSurahRank(a.hafalanProgress.lastSurah || '');
+          const surahRankB = getSurahRank(b.hafalanProgress.lastSurah || '');
+          return surahRankB - surahRankA;
+        });
+        
+        setStudents(sortedStudents);
         
         // Extract unique group names (class/grade) and teacher names
         const groupNames = Array.from(new Set(studentsData.map(s => s.group)));
@@ -67,7 +96,7 @@ const TeacherProgress = () => {
             onChange={(e) => setSearch(e.target.value)}
           />
 
-          <Select onValueChange={setSelectedGroup}>
+          <Select onValueChange={setSelectedGroup} value={selectedGroup}>
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Filter by Grade/Class" />
             </SelectTrigger>
@@ -79,7 +108,7 @@ const TeacherProgress = () => {
             </SelectContent>
           </Select>
 
-          <Select onValueChange={setSelectedTeacher}>
+          <Select onValueChange={setSelectedTeacher} value={selectedTeacher}>
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Filter by Teacher" />
             </SelectTrigger>
@@ -101,8 +130,27 @@ const TeacherProgress = () => {
                 <h2 className="text-lg font-semibold">{student.name}</h2>
                 <p>Grade/Class: {student.group}</p>
                 <p>Teacher: {student.teacher}</p>
-                <p>Hafalan Progress: {student.hafalanProgress.percentage}%</p>
-                <p>Tilawah Progress: {student.tilawahProgress.percentage}%</p>
+                <div className="mt-2">
+                  <p className="mb-1">Hafalan Progress: {student.hafalanProgress.percentage}%</p>
+                  <div className="w-full bg-gray-200 rounded-full h-2.5 mb-3">
+                    <div 
+                      className="bg-kid-blue h-2.5 rounded-full" 
+                      style={{ width: `${student.hafalanProgress.percentage || 0}%` }}
+                    ></div>
+                  </div>
+                </div>
+                <div>
+                  <p className="mb-1">Tilawah Progress: {student.tilawahProgress.percentage}%</p>
+                  <div className="w-full bg-gray-200 rounded-full h-2.5">
+                    <div 
+                      className="bg-kid-purple h-2.5 rounded-full" 
+                      style={{ width: `${student.tilawahProgress.percentage || 0}%` }}
+                    ></div>
+                  </div>
+                </div>
+                {student.hafalanProgress.lastSurah && (
+                  <p className="mt-2 text-sm">Last surah: {student.hafalanProgress.lastSurah}</p>
+                )}
               </div>
             ))}
           </div>

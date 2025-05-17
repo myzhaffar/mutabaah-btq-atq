@@ -4,6 +4,26 @@ import { getStudents } from "@/services/student";
 import { StudentWithProgress } from "@/types/database";
 import { StudentFilters } from "@/hooks/useStudentFilters";
 
+// Define Quran surah order - starting from An-Nas (114) down to Al-Fatihah (1)
+// We use reverse order since in memorization we typically start from the end of the Quran
+const surahOrder: Record<string, number> = {
+  "An-Nas": 114,
+  "Al-Falaq": 113,
+  "Al-Ikhlas": 112,
+  "Al-Masad": 111,
+  "An-Nasr": 110,
+  // ... (shortened for brevity)
+  "An-Naba": 78,
+  "Al-Mursalat": 77,
+  // ... (shortened for brevity)
+  "Al-Fatihah": 1,
+};
+
+// Get surah rank for sorting (higher is better)
+const getSurahRank = (surahName: string): number => {
+  return surahOrder[surahName] || 0;
+};
+
 export const useStudentData = (filters: StudentFilters) => {
   const [students, setStudents] = useState<StudentWithProgress[]>([]);
   const [filteredStudents, setFilteredStudents] = useState<StudentWithProgress[]>([]);
@@ -36,7 +56,7 @@ export const useStudentData = (filters: StudentFilters) => {
     fetchStudentsData();
   }, []);
 
-  // Apply filters when selections or search term change
+  // Apply filters and sorting when selections or search term change
   useEffect(() => {
     let result = students;
     
@@ -57,6 +77,19 @@ export const useStudentData = (filters: StudentFilters) => {
     if (filters.selectedGroups.length > 0) {
       result = result.filter(student => filters.selectedGroups.includes(student.teacher));
     }
+    
+    // Sort by hafalan progress
+    result = [...result].sort((a, b) => {
+      // First sort by percentage (higher first)
+      if (b.hafalanProgress.percentage !== a.hafalanProgress.percentage) {
+        return b.hafalanProgress.percentage - a.hafalanProgress.percentage;
+      }
+      
+      // If percentages are the same, sort by surah rank (higher surah number is better)
+      const surahRankA = getSurahRank(a.hafalanProgress.lastSurah || '');
+      const surahRankB = getSurahRank(b.hafalanProgress.lastSurah || '');
+      return surahRankB - surahRankA;
+    });
     
     setFilteredStudents(result);
   }, [filters.searchTerm, filters.selectedGrades, filters.selectedGroups, students]);

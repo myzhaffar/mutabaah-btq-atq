@@ -49,7 +49,7 @@ const StudentList: React.FC<StudentListProps> = ({ students, isLoading }) => {
               percentage: student.tilawahProgress?.percentage || 0
             }
           }} 
-          viewType="parent" 
+          viewType="teacher" 
         />
       ))}
     </div>

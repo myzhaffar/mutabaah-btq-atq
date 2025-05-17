@@ -131,7 +131,7 @@ const TeacherProgress = () => {
                 <p>Grade/Class: {student.group}</p>
                 <p>Teacher: {student.teacher}</p>
                 <div className="mt-2">
-                  <p className="mb-1">Hafalan Progress: {student.hafalanProgress.percentage}%</p>
+                  <p className="mb-1">Hafalan Progress: {student.hafalanProgress.percentage || 0}%</p>
                   <div className="w-full bg-gray-200 rounded-full h-2.5 mb-3">
                     <div 
                       className="bg-kid-blue h-2.5 rounded-full" 
@@ -140,7 +140,7 @@ const TeacherProgress = () => {
                   </div>
                 </div>
                 <div>
-                  <p className="mb-1">Tilawah Progress: {student.tilawahProgress.percentage}%</p>
+                  <p className="mb-1">Tilawah Progress: {student.tilawahProgress.percentage || 0}%</p>
                   <div className="w-full bg-gray-200 rounded-full h-2.5">
                     <div 
                       className="bg-kid-purple h-2.5 rounded-full" 

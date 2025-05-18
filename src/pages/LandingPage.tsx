@@ -21,13 +21,6 @@ const LandingPage: React.FC = () => {
         </div>
         <div className="flex items-center gap-4">
           <Button
-            variant="ghost"
-            onClick={() => navigate("/login")}
-            className="rounded-full"
-          >
-            Login
-          </Button>
-          <Button
             onClick={() => navigate("/login")}
             className="rounded-full bg-gradient-to-r from-kid-green to-kid-teal hover:opacity-90"
           >
@@ -49,19 +42,12 @@ const LandingPage: React.FC = () => {
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Button
-              onClick={() => navigate("/teacher/students")}
+              onClick={() => navigate("/login")}
               size="lg"
               className="rounded-full bg-gradient-to-r from-kid-green to-kid-teal hover:opacity-90"
             >
-              Teacher Dashboard
-            </Button>
-            <Button
-              onClick={() => navigate("/parent/dashboard")}
-              variant="outline"
-              size="lg"
-              className="rounded-full"
-            >
-              Parent Dashboard
+              Get Started
+              <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </div>
         </div>

@@ -93,7 +93,7 @@
   }
 
   body {
-    @apply bg-background text-foreground font-rounded;
+    @apply bg-background text-foreground font-apple;
   }
 
   .kid-card {

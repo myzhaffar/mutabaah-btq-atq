@@ -115,6 +115,15 @@ export default {
 			},
 			fontFamily: {
 				'rounded': ['Nunito', 'Arial', 'sans-serif'],
+				'apple': [
+					'-apple-system', 
+					'BlinkMacSystemFont', 
+					'San Francisco', 
+					'Helvetica Neue', 
+					'Helvetica', 
+					'Arial', 
+					'sans-serif'
+				],
 			}
 		}
 	},

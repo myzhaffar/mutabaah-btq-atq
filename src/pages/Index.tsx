@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -185,6 +184,16 @@ const Index = () => {
               </Button>
             </form>
           </Form>
+          
+          <div className="text-center mt-4">
+            <Button 
+              variant="link" 
+              onClick={() => navigate("/")}
+              className="text-sm text-gray-500"
+            >
+              Back to Home
+            </Button>
+          </div>
         </TabsContent>
 
         <TabsContent value="about">
@@ -223,9 +232,16 @@ const Index = () => {
               <Button 
                 variant="outline" 
                 onClick={() => setActiveTab("login")}
-                className="rounded-full"
+                className="rounded-full mr-2"
               >
                 Back to Login
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => navigate("/")}
+                className="rounded-full"
+              >
+                Back to Home
               </Button>
             </CardFooter>
           </Card>

@@ -7,6 +7,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import LandingPage from "./pages/LandingPage";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
+import { useEffect } from "react";
+import { useTheme } from "./lib/theme";
 
 // Teacher routes
 import TeacherStudentList from "./pages/teacher/TeacherStudentList";
@@ -22,37 +24,47 @@ import ParentStudentDetail from "./pages/parent/ParentStudentDetail";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          {/* Landing page as the default route */}
-          <Route path="/" element={<LandingPage />} />
-          
-          {/* Login page moved to /login */}
-          <Route path="/login" element={<Index />} />
-          
-          {/* Teacher Routes */}
-          <Route path="/teacher/students" element={<TeacherStudentList />} />
-          <Route path="/teacher/student/new" element={<TeacherStudentNew />} />
-          <Route path="/teacher/student/:id" element={<TeacherStudentDetail />} />
-          <Route path="/teacher/student/:id/edit" element={<TeacherStudentEdit />} />
-          <Route path="/teacher/student/:id/add-progress" element={<TeacherAddProgress />} />
-          <Route path="/teacher/progress" element={<TeacherProgress />} />
-          
-          {/* Parent Routes */}
-          <Route path="/parent/dashboard" element={<ParentDashboard />} />
-          <Route path="/parent/student/:id" element={<ParentStudentDetail />} />
-          
-          {/* Catch-all route */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  // This ensures theme is applied on initial load
+  const { theme } = useTheme();
+  
+  useEffect(() => {
+    // Apply theme class to document
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+  }, [theme]);
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            {/* Landing page as the default route */}
+            <Route path="/" element={<LandingPage />} />
+            
+            {/* Login page moved to /login */}
+            <Route path="/login" element={<Index />} />
+            
+            {/* Teacher Routes */}
+            <Route path="/teacher/students" element={<TeacherStudentList />} />
+            <Route path="/teacher/student/new" element={<TeacherStudentNew />} />
+            <Route path="/teacher/student/:id" element={<TeacherStudentDetail />} />
+            <Route path="/teacher/student/:id/edit" element={<TeacherStudentEdit />} />
+            <Route path="/teacher/student/:id/add-progress" element={<TeacherAddProgress />} />
+            <Route path="/teacher/progress" element={<TeacherProgress />} />
+            
+            {/* Parent Routes */}
+            <Route path="/parent/dashboard" element={<ParentDashboard />} />
+            <Route path="/parent/student/:id" element={<ParentStudentDetail />} />
+            
+            {/* Catch-all route */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;

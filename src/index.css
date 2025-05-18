@@ -97,7 +97,7 @@
   }
 
   .kid-card {
-    @apply bg-white rounded-2xl border border-gray-100 shadow-md overflow-hidden transition-all hover:shadow-lg;
+    @apply bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-md overflow-hidden transition-all hover:shadow-lg;
   }
 
   .btn-kid-primary {
@@ -109,6 +109,6 @@
   }
 
   .input-kid {
-    @apply rounded-xl border-2 border-gray-200 focus:border-kid-green focus:ring-1 focus:ring-kid-green;
+    @apply rounded-xl border-2 border-gray-200 dark:border-gray-700 focus:border-kid-green focus:ring-1 focus:ring-kid-green dark:bg-gray-800 dark:text-white;
   }
 }

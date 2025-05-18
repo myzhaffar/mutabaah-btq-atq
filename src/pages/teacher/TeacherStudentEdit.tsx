@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import DashboardLayout from "@/components/layout/DashboardLayout";
@@ -41,9 +42,11 @@ const TeacherStudentEdit = () => {
   if (isLoading) {
     return (
       <DashboardLayout userType="teacher">
-        <div className="text-center py-10">
-          <div className="w-16 h-16 border-4 border-kid-yellow border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-500">Loading student data...</p>
+        <div className="container mx-auto px-4 py-6">
+          <div className="text-center py-10">
+            <div className="w-16 h-16 border-4 border-kid-yellow border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-500">Loading student data...</p>
+          </div>
         </div>
       </DashboardLayout>
     );
@@ -52,17 +55,19 @@ const TeacherStudentEdit = () => {
   if (!studentData && !isLoading) {
     return (
       <DashboardLayout userType="teacher">
-        <div className="text-center py-10">
-          <h2 className="text-2xl font-bold mb-2">Student Not Found</h2>
-          <p className="text-gray-600 mb-6">
-            The student you're looking for doesn't exist or has been removed.
-          </p>
-          <Button
-            onClick={() => navigate("/teacher/students")}
-            className="btn-kid-primary"
-          >
-            Return to Student List
-          </Button>
+        <div className="container mx-auto px-4 py-6">
+          <div className="text-center py-10">
+            <h2 className="text-2xl font-bold mb-2">Student Not Found</h2>
+            <p className="text-gray-600 mb-6">
+              The student you're looking for doesn't exist or has been removed.
+            </p>
+            <Button
+              onClick={() => navigate("/teacher/students")}
+              className="btn-kid-primary"
+            >
+              Return to Student List
+            </Button>
+          </div>
         </div>
       </DashboardLayout>
     );
@@ -70,18 +75,20 @@ const TeacherStudentEdit = () => {
 
   return (
     <DashboardLayout userType="teacher">
-      <Button
-        variant="outline"
-        onClick={() => navigate(`/teacher/student/${id}`)}
-        className="mb-4"
-      >
-        ← Back to Student Details
-      </Button>
-      <StudentForm
-        initialData={studentData}
-        isEditing={true}
-        studentId={id}
-      />
+      <div className="container mx-auto px-4 py-6">
+        <Button
+          variant="outline"
+          onClick={() => navigate(`/teacher/student/${id}`)}
+          className="mb-4"
+        >
+          ← Back to Student Details
+        </Button>
+        <StudentForm
+          initialData={studentData}
+          isEditing={true}
+          studentId={id}
+        />
+      </div>
     </DashboardLayout>
   );
 };

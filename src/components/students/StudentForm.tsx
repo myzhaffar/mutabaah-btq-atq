@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -16,6 +16,8 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
 import { createStudent, updateStudent } from "@/services/student";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Camera, Image } from "lucide-react";
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -45,6 +47,10 @@ const StudentForm: React.FC<StudentFormProps> = ({
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(
+    initialData?.photo || null
+  );
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -55,6 +61,26 @@ const StudentForm: React.FC<StudentFormProps> = ({
       photo: "",
     },
   });
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Convert image to base64 string
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        setImagePreview(base64String);
+        form.setValue("photo", base64String);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const triggerFileInput = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
 
   const onSubmit = async (values: FormValues) => {
     setIsSubmitting(true);
@@ -100,6 +126,34 @@ const StudentForm: React.FC<StudentFormProps> = ({
       <h2 className="text-2xl font-bold mb-6 text-gray-800">
         {isEditing ? "Edit Student" : "Add New Student"}
       </h2>
+      
+      <div className="flex justify-center mb-6">
+        <div className="relative">
+          <Avatar className="h-24 w-24 border-2 border-gray-200">
+            {imagePreview ? (
+              <AvatarImage src={imagePreview} alt="Student photo" />
+            ) : (
+              <AvatarFallback className="bg-kid-yellow/20 text-3xl">
+                {initialData?.name?.charAt(0) || "S"}
+              </AvatarFallback>
+            )}
+          </Avatar>
+          <button
+            type="button"
+            className="absolute bottom-0 right-0 bg-white p-2 rounded-full border border-gray-200 shadow-sm hover:bg-gray-50"
+            onClick={triggerFileInput}
+          >
+            <Camera size={16} />
+          </button>
+          <input
+            type="file"
+            ref={fileInputRef}
+            className="hidden"
+            accept="image/*"
+            onChange={handleImageUpload}
+          />
+        </div>
+      </div>
       
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -160,27 +214,6 @@ const StudentForm: React.FC<StudentFormProps> = ({
                 </FormControl>
                 <FormDescription>
                   Name of the teacher or muhafidz responsible for the student.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="photo"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Photo URL (Optional)</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Enter photo URL"
-                    className="input-kid"
-                    {...field}
-                  />
-                </FormControl>
-                <FormDescription>
-                  Link to student's profile photo (optional).
                 </FormDescription>
                 <FormMessage />
               </FormItem>
